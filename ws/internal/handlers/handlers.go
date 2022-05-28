@@ -12,10 +12,11 @@ var views = jet.NewSet(
 	jet.NewOSFileSystemLoader("./html"),
 	jet.InDevelopmentMode(),
 )
+
 var upgradeConnection = websocket.Upgrader{
-	ReadBufferSize:1024,
-	WriteBufferSize:1024,
-	CheckOrigin :func(r *http.Request) bool {return true}
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -25,17 +26,28 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type WebSocketConnection struct {
+	*WebSocketConnection.Conn
+}
+
 //WsJsonResponse defines the response sent back from websocket
-type WsJsonResponse struct{
-	Action string `json:"action"`
-	Message string `json::"message"`
+type WsJsonResponse struct {
+	Action      string `json:"action"`
+	Message     string `json::"message"`
 	MessageType string `json:"message_type"`
 }
 
+type WsPayload struct {
+	Action   string              `json:"action"`
+	Username string              `json:"username"`
+	Message  string              `json:"message"`
+	Conn     WebSocketConnection `json:"-"`
+}
+
 // WsEndpoint upgrades connection to websocket
-func WsEndPoint(w http.ResponseWriter, r *http.Request){
-	ws, err := upgradeConnection.Upgrade(w,r,nil)
-	if err != nil{
+func WsEndPoint(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgradeConnection.Upgrade(w, r, nil)
+	if err != nil {
 		log.Println(err)
 	}
 
@@ -45,10 +57,9 @@ func WsEndPoint(w http.ResponseWriter, r *http.Request){
 	response.Message = `<em><small>Connected to server </small></em>`
 
 	err = ws.WriteJSON(response)
-	if err != nil{
+	if err != nil {
 		log.Println(err)
 	}
-
 
 }
 
